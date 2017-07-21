@@ -39,17 +39,28 @@ function download()
       while read -r url_line
       do
         # save the file to downloads/path/to/file
-        # ${url_line:19} *should* just strip off the "https://data.bl.uk/" part of the string
+        # ${{url_line:19}} *should* just strip off the "https://data.bl.uk/" part of the string
         
         # Try to url decode the filename, as some have spaces and brackets for no fucking
         # reason. Why? Reasons beyond me. We just have to deal with it.
-        filepath=urldecode ${url_line:19}
-        curl -o "downloads/$filepath" --create-dirs url_line
+        filepath=`urldecode ${{url_line:19}}`
+        curl -o "downloads/$filepath" --create-dirs $url_line
       done < "filelist.txt"
     else
       echo "Download FAILED"
       echo "You do not have either wget or curl installed on this machine"
+    fi
+  fi
 }}
+
+options=":y"
+while getopts $options option
+do
+	case $option in
+		[Yy] )  download ; exit;;
+		* ) ;;
+    esac
+done
 
 echo "This downloader will get {number} files, and use" 
 echo "approximately {size} storage space. Please ensure" 
@@ -97,7 +108,7 @@ if __name__=="__main__":
     
   path_to_files = sys.argv[-1]
   dataset, filedir = os.path.split(path_to_files)
-  with zipfile.ZipFile(os.path.join(dataset, "{0}_{1}_dlr.zip".format(dataset, filedir)), "w") as dszip:
+  with zipfile.ZipFile(os.path.join(dataset, "{0}_dlr.zip".format(filedir)), "w") as dszip:
     dszip.write(os.path.join("downloaderfiles", "wget.exe"), "wget.exe")
     dszip.write(os.path.join("downloaderfiles","LICENCE"), "LICENCE")
     dszip.write(os.path.join("downloaderfiles","README"), "README")
