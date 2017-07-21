@@ -23,9 +23,32 @@ echo End.
 
 SH_TEMPLATE = """
 #!/bin/bash
+function urldecode() {{
+  local url_enc="${{1//+/ }}"
+  printf '%b' "${{url_enc//%/\\x}}"
+}}
+
 function download()
 {{
-  exec wget -N -P downloads -i "filelist.txt"
+  if hash wget 2>/dev/null
+  then
+    exec wget -N -P downloads -i "filelist.txt"
+  else
+    if hash curl 2>/dev/null
+    then
+      while read -r url_line
+      do
+        # save the file to downloads/path/to/file
+        # ${url_line:19} *should* just strip off the "https://data.bl.uk/" part of the string
+        
+        # Try to url decode the filename, as some have spaces and brackets for no fucking
+        # reason. Why? Reasons beyond me. We just have to deal with it.
+        filepath=urldecode ${url_line:19}
+        curl -o "downloads/$filepath" --create-dirs url_line
+      done < "filelist.txt"
+    else
+      echo "Download FAILED"
+      echo "You do not have either wget or curl installed on this machine"
 }}
 
 echo "This downloader will get {number} files, and use" 
