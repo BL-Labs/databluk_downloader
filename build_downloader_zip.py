@@ -32,6 +32,7 @@ echo "This downloader will get {number} files, and use"
 echo "approximately {size} storage space. Please ensure" 
 echo "that you have enough space. This script will download" 
 echo "to a subdirectory called 'downloads'"
+echo "REQUIRED: wget must be installed to proceed."
 read -n 1 -p "Do you wish to proceed? (Y/N)" resp
 
 case $resp in
@@ -40,6 +41,8 @@ case $resp in
 esac
 """
 
+# based on
+# https://stackoverflow.com/questions/14996453/python-libraries-to-calculate-human-readable-filesize-from-bytes#14996816
 def sizeof_fmt(num, suffix='B'):
   for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
     if abs(num) < 1024.0:
@@ -71,10 +74,11 @@ if __name__=="__main__":
     
   path_to_files = sys.argv[-1]
   dataset, filedir = os.path.split(path_to_files)
-  with zipfile.ZipFile(os.path.join(dataset, "{0}_downloader.zip".format(dataset)), "w") as dszip:
+  with zipfile.ZipFile(os.path.join(dataset, "{0}_{1}_dlr.zip".format(dataset, filedir)), "w") as dszip:
     dszip.write(os.path.join("downloaderfiles", "wget.exe"), "wget.exe")
     dszip.write(os.path.join("downloaderfiles","LICENCE"), "LICENCE")
     dszip.write(os.path.join("downloaderfiles","README"), "README")
+    dszip.write(os.path.join("downloaderfiles","README.txt"), "README.txt")
     urls, rawsize = scan_files(DURL, path_to_files)
     size = sizeof_fmt(rawsize)
     bat_file = BAT_TEMPLATE.format(number=len(urls), size=size)
